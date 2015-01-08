@@ -15,12 +15,12 @@ module.exports = {
 	dispatcher: dispatcher,
 	React: React,
 	mount: function(config) {
-		console.log('Tollan SPA app is mounting');
+		console.log('Tollan app is mounting');
 		var routes = config.routes(React, Router);
 		Router.run(routes, Router.HistoryLocation, function(Handler) {
-			console.time('route');
+			console.time('render');
 			React.render(React.createElement(Handler), document.getElementById('tollanApp'), function() {
-				console.timeEnd('route');
+				console.timeEnd('render');
 			});
 		});
 	}

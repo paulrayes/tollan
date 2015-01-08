@@ -15,15 +15,14 @@ module.exports = {
 	React: React,
 	app: app,
 	start: function(config) {
-		console.log(config);
-
+		require('./lib/copyright')();
 		require('./lib/server')(app, config);
 
 		var server = app.listen(3000, function() {
-			var host = server.address().address
-			var port = server.address().port
+			var host = server.address().address;
+			var port = server.address().port;
 
-			console.log('Tollan app listening at http://%s:%s', host, port)
+			console.log('Tollan app listening at http://%s:%s', host, port);
 		});
 	}
 };
