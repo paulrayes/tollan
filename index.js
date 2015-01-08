@@ -3,20 +3,27 @@
 // Transparently support JSX
 require('node-jsx').install({extension: '.jsx'});
 
-
-var http = require('http');
+var express = require('express');
 var React = require('react');
+
+var app = express();
 
 var dispatcher = require('./lib/dispatcher');
 
 module.exports = {
 	dispatcher: dispatcher,
 	React: React,
+	app: app,
 	start: function(config) {
 		console.log(config);
 
-		var server = require('./lib/server')(config);
+		require('./lib/server')(app, config);
 
-		server.listen(3000);
+		var server = app.listen(3000, function() {
+			var host = server.address().address
+			var port = server.address().port
+
+			console.log('Tollan app listening at http://%s:%s', host, port)
+		});
 	}
 };

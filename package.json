@@ -2,21 +2,26 @@
   "name": "tollan",
   "version": "0.0.1",
   "description": "Opinionated isomorphic and modular SPA framework with unidirectional data flow",
+  "author": "Paul Rayes",
+  "license": "apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://bitbucket.org/leoninepublishers/tollan"
+  },
   "main": "index.js",
+  "browser": "browser/index.js",
+  "bin": {
+    "tollan": "bin/tollan.js"
+  },
   "scripts": {
     "start": "node --harmony index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Paul Rayes",
-  "license": "apache-2.0",
   "dependencies": {
-    "director": "^1.2.7",
-    "es6-promise": "^2.0.1",
+    "express": "^4.10.7",
     "node-jsx": "^0.12.4",
     "react": "^0.12.2",
     "react-router": "^0.11.6",
-    "react-tools": "^0.12.2",
-    "webpack": "^1.4.15",
     "xhr": "^2.0.0"
   }
 }
