@@ -19,10 +19,9 @@ module.exports = {
 		require('./lib/server')(app, config);
 
 		var server = app.listen(3000, function() {
-			var host = server.address().address;
 			var port = server.address().port;
 
-			console.log('Tollan app listening at http://%s:%s', host, port);
+			console.log('Tollan app listening on port %s in %s mode', port, process.env.NODE_ENV);
 		});
 	}
 };
