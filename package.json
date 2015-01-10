@@ -8,21 +8,33 @@
     "type": "git",
     "url": "https://bitbucket.org/leoninepublishers/tollan"
   },
-  "main": "index.js",
-  "browser": "browser/index.js",
+  "main": "lib/index.js",
+  "browser": "lib/browser.js",
   "bin": {
     "tollan": "bin/tollan.js"
   },
   "scripts": {
-    "start": "node --harmony index.js",
+    "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "browserify": "^8.1.0",
     "dot": "^1.0.3",
     "express": "^4.10.7",
+    "gulp": "^3.8.10",
+    "gulp-if": "^1.2.5",
+    "gulp-less": "^2.0.1",
+    "gulp-nodemon": "^1.0.5",
+    "gulp-plumber": "^0.6.6",
+    "gulp-streamify": "0.0.5",
+    "gulp-uglify": "^1.0.2",
+    "less-plugin-clean-css": "^1.4.0",
     "node-jsx": "^0.12.4",
     "react": "^0.12.2",
     "react-router": "^0.11.6",
+    "reactify": "^0.17.1",
+    "vinyl-source-stream": "^1.0.0",
+    "watchify": "^2.2.1",
     "xhr": "^2.0.0"
   }
 }
