@@ -24,6 +24,7 @@
     "esprima-fb": "^8001.2001.0-dev-harmony-fb",
     "express": "^4.10.7",
     "gulp": "^3.8.10",
+    "gulp-cached": "^1.0.1",
     "gulp-if": "^1.2.5",
     "gulp-jsx": "^0.6.1",
     "gulp-less": "^2.0.1",
