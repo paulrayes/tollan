@@ -1,5 +1,8 @@
+'use strict';
+
 var gulp = require('gulp');
-var source = require('vinyl-source-stream'); // Used to stream bundle for further handling
+// Used to stream bundle for further handling
+var source = require('vinyl-source-stream');
 var browserify = require('browserify');
 var watchify = require('watchify');
 var reactify = require('reactify');
@@ -7,7 +10,7 @@ var gulpif = require('gulp-if');
 var uglify = require('gulp-uglify');
 var streamify = require('gulp-streamify');
 var less = require('gulp-less');
-var cleancss = new (require("less-plugin-clean-css"))({advanced: true});
+var cleancss = new (require('less-plugin-clean-css'))({advanced: true});
 var plumber = require('gulp-plumber');
 var nodemon = require('gulp-nodemon');
 
@@ -34,6 +37,35 @@ var initialStart = Date.now();
 
 var gulpNext; // Next callback for Gulp to tell it we're done with the task
 
+// Runs nodemon once all the tasks are completed
+// It won't run right away as nodemon will just restart over and over until
+// everything is built, and it won't work anyway as the files will be old
+// or missing.
+var nodemonTask = function() {
+	if (tasksCompleted < TASK_COUNT) {
+		tasksCompleted++;
+	}
+	if (tasksCompleted === TASK_COUNT) {
+		console.log(
+			'Completed', tasksCompleted, 'tasks in',
+			(Date.now() - initialStart) + 'ms'
+			);
+		tasksCompleted++;
+		if (debug) {
+			nodemon({
+				ext: 'js,jsx,dot',
+				watch: ['*.*', 'node_modules/tollan/']
+			})
+			.on('restart', function(file) {
+				console.log(file);
+			});
+			if (gulpNext instanceof Function) {
+				gulpNext();
+			}
+		}
+	}
+};
+
 var browserifyTask = function() {
 	var bundler = browserify({
 		extensions: ['.jsx'],
@@ -50,13 +82,13 @@ var browserifyTask = function() {
 		});
 
 		// Watchify doesn't work in dist because we turned off fullPaths
-		var bundler  = watchify(bundler);
+		bundler = watchify(bundler);
 	}
 
 	var rebundle = function() {
 		var updateStart = Date.now();
 		// Create new bundle that uses the cache for high performance
-		var stream = bundler.bundle()
+		bundler.bundle()
 			.pipe(plumber()) // Fix error handling
 			.pipe(source('main.js'))
 			// Uglify in dist env
@@ -67,13 +99,12 @@ var browserifyTask = function() {
 				console.log('Updated main.js in ' + (Date.now() - updateStart) + 'ms');
 				nodemonTask();
 			});
-	}
+	};
 
 	bundler.on('update', rebundle);
 
 	rebundle();
 };
-
 
 /**
  * Compiles listed dependencies into vendor.js
@@ -96,11 +127,11 @@ var vendorTask = function() {
 			// Write the output
 			.pipe(gulp.dest(dest))
 			.on('end', function() {
-				console.log('Updated vendor.js in ' + (Date.now() - updateStart) + 'ms');
+				var elapsed = (Date.now() - updateStart);
+				console.log('Updated vendor.js in', elapsed, 'ms');
 				nodemonTask();
 			});
-
-	}
+	};
 
 	rebundle();
 };
@@ -120,7 +151,8 @@ var lessTask = function() {
 				}))
 				.pipe(gulp.dest(dest))
 				.on('end', function() {
-					console.log('Updated styles.css in ' + (Date.now() - updateStart) + 'ms');
+					var elapsed = (Date.now() - updateStart);
+					console.log('Updated styles.css in', elapsed, 'ms');
 					nodemonTask();
 				});
 		} else {
@@ -132,7 +164,8 @@ var lessTask = function() {
 				}))
 				.pipe(gulp.dest(dest))
 				.on('end', function() {
-					console.log('Updated styles.css in ' + (Date.now() - updateStart) + 'ms');
+					var elapsed = (Date.now() - updateStart);
+					console.log('Updated styles.css in', elapsed, 'ms');
 					nodemonTask();
 				});
 		}
@@ -155,7 +188,8 @@ var assetsTask = function() {
 		gulp.src(assets)
 			.pipe(gulp.dest(dest))
 			.on('end', function() {
-				console.log('Updated assets in ' + (Date.now() - updateStart) + 'ms');
+				var elapsed = (Date.now() - updateStart);
+				console.log('Updated assets in', elapsed, 'ms');
 				nodemonTask();
 			});
 	};
@@ -167,42 +201,59 @@ var assetsTask = function() {
 	}
 };
 
-// Runs nodemon once all the tasks are completed
-// It won't run right away as nodemon will just restart over and over until
-// everything is built, and it won't work anyway as the files will be old
-// or missing.
-var nodemonTask = function() {
-	if (tasksCompleted < TASK_COUNT) {
-		tasksCompleted++;
-	}
-	if (tasksCompleted == TASK_COUNT) {
-		tasksCompleted++;
-		console.log('Completed', tasksCompleted, 'tasks in', (Date.now() - initialStart) + 'ms');
-		if (debug) {
-			nodemon({
-				ext: 'js,jsx,dot',
-				watch: ['*.*', 'node_modules/tollan/']
-			})
-			.on('restart', function(file) {
-				console.log(file);
-			});
-			gulpNext();
-		}
-	}
-};
-
 // Finally create the gulp tasks
 
 var task = function(next) {
 	gulpNext = next;
 	require('./lib/copyright')();
-	console.log('Building front-end files for ' + process.env.NODE_ENV + ' environment.');
+	console.log(
+		'Building front-end files for',
+		process.env.NODE_ENV,
+		' environment.'
+	);
 	browserifyTask();
 	if (debug) {
 		vendorTask();
 	}
 	lessTask();
 	assetsTask();
-}
+};
 
-module.exports = task;
+var jscs = require('./lib/gulpTasks/jscs');
+var jshint = require('./lib/gulpTasks/jshint');
+var recess = require('./lib/gulpTasks/recess');
+
+var lintTask = function(next) {
+	var tasksCompleted = 0;
+	var TASK_COUNT = 3;
+	var rebundle = function() {
+		jscs(function() {
+			tasksCompleted++;
+			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
+				next();
+			}
+		});
+		jshint(function() {
+			tasksCompleted++;
+			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
+				next();
+			}
+		});
+		recess(function() {
+			tasksCompleted++;
+			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
+				next();
+			}
+		});
+	};
+
+	gulp.watch(['*.js', 'lib/**/*.{js,jsx}'], rebundle);
+
+	rebundle();
+};
+
+module.exports = {
+	gulp: gulp,
+	build: task,
+	lint: lintTask
+};
