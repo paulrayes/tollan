@@ -32,9 +32,8 @@ var tasksCompleted = 0;
 
 var initialStart = Date.now();
 
-/**
- * Compiles all our code into main.js
- */
+var gulpNext; // Next callback for Gulp to tell it we're done with the task
+
 var browserifyTask = function() {
 	var bundler = browserify({
 		extensions: ['.jsx'],
@@ -74,6 +73,7 @@ var browserifyTask = function() {
 
 	rebundle();
 };
+
 
 /**
  * Compiles listed dependencies into vendor.js
@@ -176,20 +176,25 @@ var nodemonTask = function() {
 		tasksCompleted++;
 	}
 	if (tasksCompleted == TASK_COUNT) {
+		tasksCompleted++;
 		console.log('Completed', tasksCompleted, 'tasks in', (Date.now() - initialStart) + 'ms');
-		nodemon({
-			ext: 'js,jsx,dot',
-			watch: ['*.*', 'node_modules/tollan/']
-		})
-		.on('restart', function(file) {
-			console.log(file);
-		});
+		if (debug) {
+			nodemon({
+				ext: 'js,jsx,dot',
+				watch: ['*.*', 'node_modules/tollan/']
+			})
+			.on('restart', function(file) {
+				console.log(file);
+			});
+			gulpNext();
+		}
 	}
 };
 
 // Finally create the gulp tasks
 
-var task = function() {
+var task = function(next) {
+	gulpNext = next;
 	require('./lib/copyright')();
 	console.log('Building front-end files for ' + process.env.NODE_ENV + ' environment.');
 	browserifyTask();
