@@ -167,16 +167,19 @@ var assetsTask = function() {
 	}
 };
 
+// Runs nodemon once all the tasks are completed
+// It won't run right away as nodemon will just restart over and over until
+// everything is built, and it won't work anyway as the files will be old
+// or missing.
 var nodemonTask = function() {
 	if (tasksCompleted < TASK_COUNT) {
 		tasksCompleted++;
-		//console.log('Completed', tasksCompleted, 'of', TASK_COUNT, 'tasks.');
 	}
 	if (tasksCompleted == TASK_COUNT) {
 		console.log('Completed', tasksCompleted, 'tasks in', (Date.now() - initialStart) + 'ms');
 		nodemon({
 			ext: 'js,jsx,dot',
-			watch: ['*.*', 'node_modules/tollan']
+			watch: ['*.*', 'node_modules/tollan/']
 		})
 		.on('restart', function(file) {
 			console.log(file);
@@ -195,7 +198,6 @@ var task = function() {
 	}
 	lessTask();
 	assetsTask();
-	//nodemonTask();
 }
 
 module.exports = task;
