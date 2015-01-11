@@ -7,7 +7,7 @@ var gulp = require('gulp');
 var lintTask = require('./tollanGulp').lint;
 
 gulp.task('default', function(next) {
-	lintTask(function() {
+	lintTask(function(failed) {
 		//gulp.watch(['*.js', 'lib/**/*.{js,jsx}'], lintTask);
 		next();
 	});

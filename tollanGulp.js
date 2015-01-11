@@ -226,25 +226,20 @@ var recess = require('./lib/gulpTasks/recess');
 var lintTask = function(next) {
 	var tasksCompleted = 0;
 	var TASK_COUNT = 3;
+	var anyFailed = false;
+
+	var rebundleDone = function(failed) {
+		tasksCompleted++;
+		anyFailed = anyFailed === true || failed === true;
+		if (tasksCompleted === TASK_COUNT && next instanceof Function) {
+			next(anyFailed);
+		}
+	};
+
 	var rebundle = function() {
-		jscs(function() {
-			tasksCompleted++;
-			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
-				next();
-			}
-		});
-		jshint(function() {
-			tasksCompleted++;
-			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
-				next();
-			}
-		});
-		recess(function() {
-			tasksCompleted++;
-			if (tasksCompleted === TASK_COUNT && next instanceof Function) {
-				next();
-			}
-		});
+		jscs(rebundleDone);
+		jshint(rebundleDone);
+		recess(rebundleDone);
 	};
 
 	gulp.watch(['*.js', 'lib/**/*.{js,jsx}'], rebundle);

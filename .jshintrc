@@ -13,6 +13,13 @@
   // Define globals exposed by Node.js.
   "node": true,
 
+  // Define globals exposed by Jest, for testing
+  "globals": {
+    "jest": true,
+    "describe": true,
+    "it": true
+  },
+
   /*
    * ENFORCING OPTIONS
    * =================
