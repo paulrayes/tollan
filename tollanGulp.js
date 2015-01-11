@@ -1,5 +1,7 @@
 'use strict';
 
+var path = require('path');
+
 var gulp = require('gulp');
 // Used to stream bundle for further handling
 var source = require('vinyl-source-stream');
@@ -21,16 +23,19 @@ var dependencies = [
 	'react-router'
 ];
 // Source files
-var src = './lib/browser.js';
+var src = path.normalize(process.cwd() + '/lib/browser.js');
 var css = './lib/styles/*.{less,css}';
 var assets = './lib/assets/*.*';
 // Destination folder
 var dest = './build/';
 
-var debug = (process.env.NODE_ENV === 'development');
+var dev = (process.env.NODE_ENV === 'development');
+var staging = (process.env.NODE_ENV === 'staging');
+var prod = (process.env.NODE_ENV === 'production');
 var sourceMapping = false;
 
 var TASK_COUNT = 4;
+
 var tasksCompleted = 0;
 
 var initialStart = Date.now();
@@ -51,7 +56,7 @@ var nodemonTask = function() {
 			(Date.now() - initialStart) + 'ms'
 			);
 		tasksCompleted++;
-		if (debug) {
+		if (dev || staging) {
 			nodemon({
 				ext: 'js,jsx,dot',
 				watch: ['*.*', 'node_modules/tollan/']
@@ -66,16 +71,18 @@ var nodemonTask = function() {
 	}
 };
 
+var shell = require('shelljs');
+
 var browserifyTask = function() {
 	var bundler = browserify({
 		extensions: ['.jsx'],
 		entries: [src], // Only need initial file, browserify finds the deps
 		transform: [reactify],
 		debug: sourceMapping, // Gives us sourcemapping
-		cache: {}, packageCache: {}, fullPaths: debug // Requirement of watchify
+		cache: {}, packageCache: {}, fullPaths: staging || dev // Requirement of watchify
 	});
 
-	if (debug) {
+	if (dev) {
 		// Do not include external libraries
 		dependencies.forEach(function(dep) {
 			bundler.external(dep);
@@ -92,11 +99,21 @@ var browserifyTask = function() {
 			.pipe(plumber()) // Fix error handling
 			.pipe(source('main.js'))
 			// Uglify in dist env
-			.pipe(gulpif(!debug, streamify(uglify())))
+			.pipe(gulpif(!dev, streamify(uglify())))
 			// Write the output
 			.pipe(gulp.dest(dest))
 			.on('end', function() {
 				console.log('Updated main.js in ' + (Date.now() - updateStart) + 'ms');
+				if (staging) {
+					updateStart = Date.now();
+					shell.exec('discify build/main.js > build/disc.html', function(code, output) {
+						if (code === 0) {
+							console.log('Updated disc.html in ' + (Date.now() - updateStart) + 'ms');
+						} else {
+							throw(output);
+						}
+					});
+				}
 				nodemonTask();
 			});
 	};
@@ -143,7 +160,7 @@ var lessTask = function() {
 
 	var rebundle = function() {
 		var updateStart = Date.now();
-		if (debug) {
+		if (dev) {
 			gulp.src(css)
 				.pipe(plumber()) // Fix error handling
 				// No uglify in dev env
@@ -173,7 +190,7 @@ var lessTask = function() {
 
 	rebundle();
 
-	if (debug) {
+	if (dev) {
 		gulp.watch(css, rebundle);
 	}
 };
@@ -196,7 +213,7 @@ var assetsTask = function() {
 
 	rebundle();
 
-	if (debug) {
+	if (dev) {
 		gulp.watch(assets, rebundle);
 	}
 };
@@ -212,8 +229,10 @@ var task = function(next) {
 		' environment.'
 	);
 	browserifyTask();
-	if (debug) {
+	if (dev) {
 		vendorTask();
+	} else  {
+		tasksCompleted++;
 	}
 	lessTask();
 	assetsTask();

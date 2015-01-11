@@ -25,7 +25,7 @@
 		(function(window, document) {
 			var jsUrl = '{{= it.jsUrl }}';
 			var fontUrl = 'http://fonts.googleapis.com/css?family=Droid+Serif:400,400italic|Open+Sans:400italic,400,700';
-			var cssUrl = '{{= it.cssUrl }}';
+			var mainCssUrl = '{{= it.mainCssUrl }}';
 
 			function inject() {
 				var head = document.getElementsByTagName('head')[0];
@@ -49,7 +49,7 @@
 				{{? it.deferCss }}
 					var stylesElement = document.createElement('link');
 					stylesElement.rel = 'stylesheet';
-					stylesElement.href = cssUrl;
+					stylesElement.href = mainCssUrl;
 					head.appendChild(stylesElement);
 				{{?}}
 			}
