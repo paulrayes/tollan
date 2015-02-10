@@ -122,13 +122,13 @@ var browserifyTask = function() {
 		var TASK_COUNT = 1;//2;
 		var anyFailed = false;
 
-		var lintDone = function(failed) {
+		/*var lintDone = function(failed) {
 			tasksCompleted++;
 			anyFailed = anyFailed === true || failed === true;
 			if (tasksCompleted === TASK_COUNT) {
 				if (anyFailed) {
 					return;
-				}
+				}*/
 				var updateStart = Date.now();
 				// Create new bundle that uses the cache for high performance
 				bundler.bundle()
@@ -152,11 +152,11 @@ var browserifyTask = function() {
 						}
 						restart();
 					});
-			}
-		}
+			/*}
+		}*/
 
 		//jscs(lintDone);
-		jshint(lintDone);
+		//jshint(lintDone);
 	};
 
 	gulp.watch(js, function() {
