@@ -1,6 +1,8 @@
 Tollan
 ======
 
+**DEPRECATED**: Use tollan-client and tollan-gulp instead of this.
+
 Tollan is an opinionated framework for single-page applications, with the following principles:
 
 - Isomorphic
